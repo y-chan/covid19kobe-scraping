@@ -2,7 +2,8 @@
 
 ## What's this?
 神戸市公式サイトや、神戸市オープンデータカタログサイトで公開されている情報を集め、jsonとして出力するPythonスクリプトです。
-[神戸市 新型コロナウイルス感染症 対策サイト](https://kobe.covid19.jp/)で使用する形に整形し、出力します。
+[神戸市 新型コロナウイルス感染症 対策サイト](https://kobe.covid19.jp/)で使用する形に整形し、出力します。  
+なお、データ参照元URLは適宜、[config.py](config.py)で変えることができます。
 
 ## Make date
 ```shell script
@@ -22,7 +23,7 @@ python3 main.py
 |patients_summary|日別患者数|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|
 |inspections_summary|PCR検査の陰性/陽性状況|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|
 |main_summary|検査状況/患者状況の総まとめ|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|
-|lastUpdate|データの最終更新日|スクリプト生成日時|
+|lastUpdate|データの最終更新日|スクリプト実行日時|
 
 
 ## License
