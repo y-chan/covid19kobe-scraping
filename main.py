@@ -13,7 +13,7 @@ class DataJson:
         self.main_summary_html = requests_html("/a73576/kenko/health/infection/protection/covid_19.html")
         # self.main_summary_sheet = get_xlsx(config.main_summary_xlsx, "main_summary.xlsx")["kobe"]
         self.inspections_count = 4
-        self.contacts_count = 6
+        self.contacts_count = 2
         # self.summary_count = 2
         self.main_summary_values = []
         self.last_update = datetime.today().strftime("%Y/%m/%d %H:%M")  # TODO: 参照データの最終更新日時を入れる
@@ -56,7 +56,7 @@ class DataJson:
 
     def health_center_summary_json(self) -> Dict:
         if not self._health_center_summary_json:
-            self.make_health_center_summary()
+            self.make_contacts()
         return self._health_center_summary_json
 
     def patients_json(self) -> Dict:
@@ -92,53 +92,40 @@ class DataJson:
         }
 
     def make_contacts(self) -> None:
-        # window_contactsとcenter_contactsを一緒に生成する。
+        # window_contactsとcenter_contacts、health_center_summaryを同時に生成する。
         # スクリプト実行時間短縮のため、同時に生成している。
         self._window_contacts_json = self.template_json()
         self._center_contacts_json = self.template_json()
+        self._health_center_summary_json = self.template_json()
 
-        for i in range(6, self.contacts_count):
+        for i in range(2, self.contacts_count):
             window_data = {}
             center_data = {}
+            health_center_data = {}
             # 日時の取得
-            date = excel_date(self.contacts_sheet.cell(row=i, column=1).value)
+            # date = excel_date(self.contacts_sheet.cell(row=i, column=1).value)
+            date = self.contacts_sheet.cell(row=i, column=1).value + timedelta(hours=8)
             # 日別窓口相談者数の取得
-            window_contacts = self.contacts_sheet.cell(row=i, column=5).value
+            window_contacts = self.contacts_sheet.cell(row=i, column=2).value
             # 日別帰国者・接触者コールセンター相談者数の取得
-            center_contacts = self.contacts_sheet.cell(row=i, column=6).value
+            center_contacts = self.contacts_sheet.cell(row=i, column=4).value
+            # 日別保健所・保健センター相談者数の取得
+            health_center = self.contacts_sheet.cell(row=i, column=6).value
             # Excelのセル内に0すら入っていないときはNoneが返ってくるので、0を代入しなおす。
             if window_contacts is None:
                 window_contacts = 0
             if center_contacts is None:
                 center_contacts = 0
-            # iso formatで日時を代入
-            window_data["日付"] = center_data["日付"] = date.isoformat() + "Z"
-            window_data["小計"] = window_contacts
-            center_data["小計"] = center_contacts
-            self._window_contacts_json["data"].append(window_data)
-            self._center_contacts_json["data"].append(center_data)
-
-    def make_health_center_summary(self) -> None:
-
-        # health_center_summaryを生成する
-        self._health_center_summary_json = self.template_json()
-
-        for i in range(6, self.contacts_count):
-            # 日時がExcel日付で入力されているので、それを変換し代入。
-            # 詳しくは https://qiita.com/nezumi/items/23c301c661f5e9653f19 参照
-            date = excel_date(self.contacts_sheet.cell(row=i, column=1).value)
-            # 保健センター相談者数の取得
-            health_center = self.contacts_sheet.cell(row=i, column=2).value
-            # 予防衛生課相談者数の取得
-            hygiene_section = self.contacts_sheet.cell(row=i, column=3).value
-            # Excelのセル内に0すら入っていないときはNoneが返ってくるので、0を代入しなおす。
             if health_center is None:
                 health_center = 0
-            if hygiene_section is None:
-                hygiene_section = 0
-            self._health_center_summary_json["data"].append(
-                make_data(date.isoformat() + "Z", health_center + hygiene_section)
-            )
+            # iso formatで日時を代入
+            window_data["日付"] = center_data["日付"] = health_center_data["日付"] = date.isoformat() + "Z"
+            window_data["小計"] = window_contacts
+            center_data["小計"] = center_contacts
+            health_center_data["小計"] = health_center
+            self._window_contacts_json["data"].append(window_data)
+            self._center_contacts_json["data"].append(center_data)
+            self._health_center_summary_json["data"].append(health_center_data)
 
     def make_patients(self) -> None:
         # patientsを生成する
@@ -189,7 +176,7 @@ class DataJson:
         # 日時の入力が不規則なので、最初のデータを参考に、一日ずつ追加する方式で。
         prev_date = (
                 datetime.strptime("2020/" + self.inspections_sheet.cell(row=4, column=1).value, "%Y/%m/%d") -
-                timedelta(days=1)
+                timedelta(hours=16)
         )
         for i in range(4, self.inspections_count):
             date = prev_date + timedelta(days=1)
@@ -207,7 +194,7 @@ class DataJson:
         # 日時の入力が不規則なので、最初のデータを参考に、一日ずつ追加する方式で。
         prev_date = (
                 datetime.strptime("2020/" + self.inspections_sheet.cell(row=4, column=1).value, "%Y/%m/%d") -
-                timedelta(days=1)
+                timedelta(hours=16)
         )
         for i in range(4, self.inspections_count):
             date = prev_date + timedelta(days=1)
@@ -278,14 +265,7 @@ class DataJson:
         while self.contacts_sheet:
             self.contacts_count += 1
             value = self.contacts_sheet.cell(row=self.contacts_count, column=1).value
-            date = excel_date(value)
-            if value is None or date > datetime.today():
-                self.contacts_count -= 1
-                if (not self.contacts_sheet.cell(row=self.contacts_count, column=2).value and
-                        not self.contacts_sheet.cell(row=self.contacts_count, column=3).value and
-                        not self.contacts_sheet.cell(row=self.contacts_count, column=5).value and
-                        not self.contacts_sheet.cell(row=self.contacts_count, column=6).value):
-                    self.contacts_count -= 1
+            if value is None:
                 break
 
     # 県のExcelデータを用いるために使用していたが、市外在住者の扱いを統一するためHPをスクレイピングしたものを使うことになったのでコメントアウト
