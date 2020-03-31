@@ -26,26 +26,30 @@ SUMMARY_INIT = {
                     'children': [
                         {
                             'attr': '軽症・中等症',
-                            'value': 0,
+                            'value': 0
                         },
                         {
                             'attr': '重症',
-                            'value': 0,
+                            'value': 0
                         }
                     ]
                 },
                 {
                     'attr': '死亡',
-                    'value': 0,
+                    'value': 0
                 },
                 {
-                    'attr': '退院',
-                    'value': 0,
+                    'attr': '治癒確認',
+                    'value': 0
                 }
             ]
         }
     ]
 }
+
+
+def make_data(date, value):
+    return {"日付": date, "小計": value}
 
 
 def excel_date(num) -> datetime:
