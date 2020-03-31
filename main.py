@@ -147,7 +147,7 @@ class DataJson:
                 # 日付を取得する
                 elif i == 1:
                     date = datetime.strptime("2020年" + text, "%Y年%m月%d日") + timedelta(hours=8)
-                    data["リリース日"] = date.isoformat() + "Z"
+                    data["判明日"] = date.isoformat() + "Z"
                     data["date"] = date.strftime("%Y-%m-%d")
                 # 年代を取得する
                 elif i == 2:
@@ -180,7 +180,7 @@ class DataJson:
         )
         for i in range(4, self.inspections_count):
             date = prev_date + timedelta(days=1)
-            # 陽背患者数を取得する
+            # 陽性患者数を取得する
             patients = self.inspections_sheet.cell(row=i, column=10).value
             if patients is None:
                 patients = 0
