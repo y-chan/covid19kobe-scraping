@@ -1,22 +1,25 @@
-from util import SUMMARY_INIT, dumps_json, requests_html, get_xlsx, make_data, excel_date
+from util import SUMMARY_INIT, dumps_json, requests_html, get_xlsx, make_data, template_json
 import config
 
 from datetime import datetime, timedelta
 from typing import Dict  # , List
+
+summary_first_cell = 2
+contacts_first_cell = 2
 
 
 class DataJson:
     def __init__(self):
         self.contacts_sheet = get_xlsx(config.contacts_xlsx, "contacts.xlsx")["相談件数"]
         self.patients_html = requests_html("a57337/kenko/health/corona_zokusei.html")
-        self.inspections_sheet = get_xlsx(config.inspections_xlsx, "inspections.xlsx")["検査件数・陽性患者"]
+        # self.inspections_sheet = get_xlsx(config.inspections_xlsx, "inspections.xlsx")["検査件数・陽性患者"]
         self.main_summary_html = requests_html("/a73576/kenko/health/infection/protection/covid_19.html")
-        # self.main_summary_sheet = get_xlsx(config.main_summary_xlsx, "main_summary.xlsx")["kobe"]
-        self.inspections_count = 4
-        self.contacts_count = 2
-        # self.summary_count = 2
+        self.main_summary_sheet = get_xlsx(config.main_summary_xlsx, "main_summary.xlsx")["kobe"]
+        # self.inspections_count = 4
+        self.contacts_count = contacts_first_cell
+        self.summary_count = summary_first_cell
         self.main_summary_values = []
-        self.last_update = datetime.today().strftime("%Y/%m/%d %H:%M")  # TODO: 参照データの最終更新日時を入れる
+        self.last_update = datetime.today().strftime("%Y/%m/%d %H:%M")
         self._data_json = {}
         # 以下内部変数
         self._window_contacts_json = {}
@@ -27,15 +30,9 @@ class DataJson:
         self._inspections_summary_json = {}
         self._main_summary_json = {}
         # 初期化
-        self.get_inspections()
+        # self.get_inspections()
         self.get_contacts()
-
-    def template_json(self) -> Dict:
-        # テンプレート、これをもとにデータを追加していく
-        return {
-            "date": self.last_update,
-            "data": []
-        }
+        self.get_summary_count()
 
     def data_json(self) -> Dict:
         # 内部変数にデータが保管されているか否かを確認し、保管されていなければ生成し、返す。
@@ -66,12 +63,12 @@ class DataJson:
 
     def patients_summary_json(self) -> Dict:
         if not self._patients_summary_json:
-            self.make_patients_summary()
+            self.make_summaries()
         return self._patients_summary_json
 
     def inspections_summary_json(self) -> Dict:
         if not self._inspections_summary_json:
-            self.make_inspections_summary()
+            self.make_summaries()
         return self._inspections_summary_json
 
     def main_summary_json(self) -> Dict:
@@ -92,13 +89,17 @@ class DataJson:
         }
 
     def make_contacts(self) -> None:
+        # 最終データの日を最終更新日とする
+        last_update = (
+            self.contacts_sheet.cell(row=self.contacts_count - 1, column=1).value
+        ).strftime("%Y/%m/%d %H:%M")
         # window_contactsとcenter_contacts、health_center_summaryを同時に生成する。
         # スクリプト実行時間短縮のため、同時に生成している。
-        self._window_contacts_json = self.template_json()
-        self._center_contacts_json = self.template_json()
-        self._health_center_summary_json = self.template_json()
+        self._window_contacts_json = template_json(last_update)
+        self._center_contacts_json = template_json(last_update)
+        self._health_center_summary_json = template_json(last_update)
 
-        for i in range(2, self.contacts_count):
+        for i in range(contacts_first_cell, self.contacts_count):
             window_data = {}
             center_data = {}
             health_center_data = {}
@@ -128,8 +129,11 @@ class DataJson:
             self._health_center_summary_json["data"].append(health_center_data)
 
     def make_patients(self) -> None:
+        # HTMLから最終更新日を取得する
+        last_update_str = [x.get_text() for x in self.patients_html.find_all("p") if "更新日" in x.get_text()][0][4:]
+        last_update = datetime.strptime(last_update_str, "%Y年%m月%d日").strftime("%Y/%m/%d %H:%M")
         # patientsを生成する
-        self._patients_json = self.template_json()
+        self._patients_json = template_json(last_update)
 
         # patientsは現状HTMLの表を使用して作成しているので、テーブル(レコード一覧)を取得する
         tables = self.patients_html.find_all("tr")
@@ -169,39 +173,24 @@ class DataJson:
         # 市外発表者も含むため、日時順でソート
         self._patients_json["data"].sort(key=lambda x: x['date'])
 
-    def make_patients_summary(self) -> None:
-        # patients_summaryを生成する
-        self._patients_summary_json = self.template_json()
+    def make_summaries(self) -> None:
+        # 最終データの日を最終更新日とする
+        last_update = (
+            self.main_summary_sheet.cell(row=self.summary_count - 1, column=1).value
+        ).strftime("%Y/%m/%d %H:%M")
+        # patients_summaryとinspections_summaryを同時に生成する
+        # スクリプト実行時間短縮のため、同時に生成している。
+        self._patients_summary_json = template_json(last_update)
+        self._inspections_summary_json = template_json(last_update)
 
-        # 日時の入力が不規則なので、最初のデータを参考に、一日ずつ追加する方式で。
-        prev_date = (
-                datetime.strptime("2020/" + self.inspections_sheet.cell(row=4, column=1).value, "%Y/%m/%d") -
-                timedelta(hours=16)
-        )
-        for i in range(4, self.inspections_count):
-            date = prev_date + timedelta(days=1)
+        for i in range(summary_first_cell, self.summary_count):
+            date = self.main_summary_sheet.cell(row=i, column=1).value + timedelta(hours=8)
             # 陽性患者数を取得する
-            patients = self.inspections_sheet.cell(row=i, column=10).value
-            if patients is None:
-                patients = 0
-            self._patients_summary_json["data"].append(make_data(date.isoformat() + "Z", patients))
-            prev_date = date
-
-    def make_inspections_summary(self) -> None:
-        # inspections_summaryを生成
-        self._inspections_summary_json = self.template_json()
-
-        # 日時の入力が不規則なので、最初のデータを参考に、一日ずつ追加する方式で。
-        prev_date = (
-                datetime.strptime("2020/" + self.inspections_sheet.cell(row=4, column=1).value, "%Y/%m/%d") -
-                timedelta(hours=16)
-        )
-        for i in range(4, self.inspections_count):
-            date = prev_date + timedelta(days=1)
+            patients = self.main_summary_sheet.cell(row=i, column=4).value
             # 検査人数を取得する
-            inspections = self.inspections_sheet.cell(row=i, column=2).value
+            inspections = self.main_summary_sheet.cell(row=i, column=2).value
+            self._patients_summary_json["data"].append(make_data(date.isoformat() + "Z", patients))
             self._inspections_summary_json["data"].append(make_data(date.isoformat() + "Z", inspections))
-            prev_date = date
 
     def make_main_summary(self) -> None:
         # main_summaryの生成
@@ -245,20 +234,21 @@ class DataJson:
                 self.main_summary_values = self.main_summary_values[1:]
                 self.set_summary_values(child)
 
-    # 県のExcelデータを用いるために使用していたが、市外在住者の扱いを統一するためHPをスクレイピングしたものを使うことになったのでコメントアウト
+    # 市のExcelデータを用いるために使用していたが、市外在住者の扱いを統一するためHPをスクレイピングしたものを使うことになったのでコメントアウト
     # def get_main_summary_values(self) -> List:
     #     values = []
     #     for i in range(2, 9):
     #         values.append(self.main_summary_sheet.cell(row=self.summary_count - 1, column=i).value)
     #      return values
 
-    def get_inspections(self) -> None:
-        # 何行分検査数のデータがあるかを取得
-        while self.inspections_sheet:
-            self.inspections_count += 1
-            value = self.inspections_sheet.cell(row=self.inspections_count, column=2).value
-            if value is None:
-                break
+    # 検査件数、陽性患者数はmain_summary_sheetから取ることになったのでコメントアウト
+    # def get_inspections(self) -> None:
+    #     # 何行分検査数のデータがあるかを取得
+    #     while self.inspections_sheet:
+    #         self.inspections_count += 1
+    #         value = self.inspections_sheet.cell(row=self.inspections_count, column=1).value
+    #         if value is None:
+    #             break
 
     def get_contacts(self) -> None:
         # 何行分相談数のデータがあるかを取得
@@ -268,13 +258,13 @@ class DataJson:
             if value is None:
                 break
 
-    # 県のExcelデータを用いるために使用していたが、市外在住者の扱いを統一するためHPをスクレイピングしたものを使うことになったのでコメントアウト
-    # def get_summary_count(self) -> None:
-    #     while self.main_summary_sheet:
-    #         self.summary_count += 1
-    #         value = self.main_summary_sheet.cell(row=self.summary_count, column=1).value
-    #         if not value:
-    #             break
+    def get_summary_count(self) -> None:
+        # 何行分サマリーのデータがあるかを取得
+        while self.main_summary_sheet:
+            self.summary_count += 1
+            value = self.main_summary_sheet.cell(row=self.summary_count, column=1).value
+            if not value:
+                break
 
 
 if __name__ == '__main__':

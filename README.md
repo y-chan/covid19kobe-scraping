@@ -1,8 +1,8 @@
 # COVID19 Scraping Script for Kobe
 
 ## What's this?
-神戸市公式サイトや、神戸市オープンデータカタログサイトで公開されている情報を集め、jsonとして出力するPythonスクリプトです。
-[神戸市 新型コロナウイルス感染症 対策サイト](https://kobe.covid19.jp/)で使用する形に整形し、出力します。  
+神戸市公式サイト<!--や、神戸市オープンデータカタログサイト-->で公開されている情報を集め、jsonとして出力するPythonスクリプトです。
+[神戸市 新型コロナウイルス感染症 対策サイト](https://kobe.stopcovid19.jp/)で使用する形に整形し、出力します。  
 なお、データ参照元URLは適宜、[config.py](config.py)で変えることができます。
 
 ## Make date
@@ -16,9 +16,9 @@ python3 main.py
 
 |jsonデータ|データの詳細|データの参照元|
 |---|---|---|
-|window_contacts|新型コロナ健康相談窓口 相談件数|未公開|
-|center_contacts|帰国者・接触者相談センター 相談件数|未公開|
-|health_center_summary|保健所・保健センターでの一般相談件数|未公開|
+|window_contacts|新型コロナ健康相談窓口 相談件数|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|
+|center_contacts|帰国者・接触者相談センター 相談件数|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|
+|health_center_summary|保健所・保健センターでの一般相談件数|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|
 |patients|患者についての情報|[神戸市公式サイト](https://www.city.kobe.lg.jp/a57337/kenko/health/corona_zokusei.html)|
 |patients_summary|日別患者数|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|
 |inspections_summary|PCR検査の陰性/陽性状況|[神戸市公式サイト](https://www.city.kobe.lg.jp/a73576/kenko/health/infection/protection/covid_19.html)|

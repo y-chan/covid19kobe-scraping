@@ -52,6 +52,14 @@ def make_data(date, value):
     return {"日付": date, "小計": value}
 
 
+def template_json(last_update: str) -> Dict:
+    # テンプレート、これをもとにデータを追加していく
+    return {
+        "date": last_update,
+        "data": []
+    }
+
+
 def excel_date(num) -> datetime:
     return datetime(1899, 12, 30) + timedelta(days=num, hours=8)
 
