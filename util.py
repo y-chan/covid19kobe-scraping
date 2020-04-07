@@ -6,10 +6,11 @@ import time
 
 from bs4 import BeautifulSoup
 from json import dumps
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from typing import Dict
 
+jst = timezone(timedelta(hours=9), 'JST')
 base_url = "https://www.city.kobe.lg.jp/"
 
 SUMMARY_INIT = {

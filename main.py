@@ -1,4 +1,4 @@
-from util import SUMMARY_INIT, dumps_json, requests_html, get_xlsx, make_data, template_json
+from util import SUMMARY_INIT, dumps_json, requests_html, get_xlsx, make_data, template_json, jst
 import config
 
 from datetime import datetime, timedelta
@@ -19,7 +19,7 @@ class DataJson:
         self.contacts_count = contacts_first_cell
         self.summary_count = summary_first_cell
         self.main_summary_values = []
-        self.last_update = datetime.today().strftime("%Y/%m/%d %H:%M")
+        self.last_update = datetime.today().astimezone(jst).strftime("%Y/%m/%d %H:%M")
         self._data_json = {}
         # 以下内部変数
         self._window_contacts_json = {}
