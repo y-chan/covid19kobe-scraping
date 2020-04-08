@@ -1761,14 +1761,14 @@
             }
         ]
     },
-    "lastUpdate": "2020/04/08 11:02",
+    "lastUpdate": "2020/04/08 12:02",
     "main_summary": {
         "attr": "検査実施人数",
         "value": 582,
         "children": [
             {
                 "attr": "陽性患者数",
-                "value": 57,
+                "value": 56,
                 "children": [
                     {
                         "attr": "入院中",
