@@ -107,7 +107,7 @@ def get_xlsx(path: str, number: int = 0) -> openpyxl.workbook.workbook.Workbook:
             continue
         if tag.get("href")[-4:] == "xlsx":
             if count == number:
-                file_url = base_url + tag.get("href")
+                file_url = base_url + tag.get("href")[1:]
                 break
             count += 1
 
@@ -120,6 +120,7 @@ def requests_xlsx(url: str) -> openpyxl.workbook.workbook.Workbook:
     filename = "./data/" + os.path.basename(url)
     failed_count = 0
     status_code = 404
+    print(url)
     while not status_code == 200:
         try:
             res = requests.get(url, stream=True)
