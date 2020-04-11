@@ -53,6 +53,7 @@ OLD_SUMMARY_INIT = {
 
 SUMMARY_INIT = copy.copy(OLD_SUMMARY_INIT)
 SUMMARY_INIT["attr"] = "患者発生総数"
+SUMMARY_INIT["children"][0]["attr"] = "調査済患者総数"
 
 
 def print_log(type: str, message: str) -> None:
@@ -120,7 +121,6 @@ def requests_xlsx(url: str) -> openpyxl.workbook.workbook.Workbook:
     filename = "./data/" + os.path.basename(url)
     failed_count = 0
     status_code = 404
-    print(url)
     while not status_code == 200:
         try:
             res = requests.get(url, stream=True)
