@@ -1800,10 +1800,10 @@
             }
         ]
     },
-    "lastUpdate": "2020/04/11 11:03",
+    "lastUpdate": "2020/04/11 12:03",
     "main_summary": {
         "attr": "患者発生総数",
-        "value": 90,
+        "value": 103,
         "children": [
             {
                 "attr": "陽性患者数",
