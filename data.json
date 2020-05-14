@@ -2244,26 +2244,26 @@
             },
             {
                 "日付": "2020-05-14T08:00:00Z",
-                "小計": 0
+                "小計": 28
             }
         ]
     },
-    "lastUpdate": "2020/05/14 21:08",
+    "lastUpdate": "2020/05/14 22:08",
     "main_summary": {
         "attr": "患者発生総数",
-        "value": 278,
+        "value": 281,
         "children": [
             {
                 "attr": "調査済患者総数",
-                "value": 276,
+                "value": 277,
                 "children": [
                     {
                         "attr": "入院中",
-                        "value": 77,
+                        "value": 64,
                         "children": [
                             {
                                 "attr": "軽症・中等症",
-                                "value": 67
+                                "value": 54
                             },
                             {
                                 "attr": "重症",
@@ -2277,7 +2277,7 @@
                     },
                     {
                         "attr": "治癒確認",
-                        "value": 188
+                        "value": 202
                     }
                 ]
             }
